@@ -1,0 +1,32 @@
+{
+  "name": "github-automation-by-modshik",
+  "version": "1.1.0",
+  "description": "Daily GitHub commit automation \u2014 keep your streak alive automatically",
+  "main": "github-streak.js",
+  "scripts": {
+    "auth": "node github-streak.js --auth",
+    "run-now": "node github-streak.js --run",
+    "start": "node github-streak.js",
+    "manage": "node manage.js",
+    "status": "pm2 status github-streak",
+    "logs": "pm2 logs github-streak --lines 50",
+    "stop": "pm2 stop github-streak",
+    "restart": "pm2 restart github-streak",
+    "setup": "bash setup.sh"
+  },
+  "keywords": [
+    "github",
+    "automation",
+    "streak",
+    "commit",
+    "playwright"
+  ],
+  "author": "modShik (https://github.com/modShik)",
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.43.0",
+    "node-cron": "^3.0.3",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5"
+  }
+}
