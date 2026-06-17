@@ -11,7 +11,6 @@ const CONFIG = {
   sessionFile: process.env.SESSION_FILE  || './sessions/github.json',
   chromium:    process.env.CHROMIUM_PATH || '/snap/bin/chromium',
   schedule:    process.env.SCHEDULE      || '0 21 * * *',
-  jitterMin:   parseInt(process.env.JITTER_MINUTES || '20', 10),
   headless:    process.env.HEADLESS === 'true',
 };
 
@@ -233,7 +232,7 @@ function startScheduler() {
   console.log('\n⚡ GitHub Streak — Scheduler Active');
   console.log('══════════════════════════════════════');
   console.log(`  Repo:     ${CONFIG.repo}`);
-  console.log(`  Schedule: ${CONFIG.schedule} ±${CONFIG.jitterMin}min`);
+  console.log(`  Schedule: ${CONFIG.schedule}`);
   console.log(`  Mode:     ${CONFIG.headless ? 'headless (background)' : 'headed (visible)'}`);
   console.log('══════════════════════════════════════');
   console.log('  You can close this terminal — pm2 keeps it running.');
@@ -241,9 +240,6 @@ function startScheduler() {
   console.log('  To check: npm run status\n');
 
   cron.schedule(CONFIG.schedule, async () => {
-    const jitter = Math.max(0, (Math.random() * CONFIG.jitterMin * 2 - CONFIG.jitterMin) * 60_000);
-    if (jitter > 0) console.log(`[scheduler] Waiting ${Math.round(jitter/60000)}min jitter...`);
-    await sleep(jitter);
     await commitToGitHub();
   });
 }
