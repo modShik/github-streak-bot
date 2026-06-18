@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 const { chromium } = require('playwright');
 const cron         = require('node-cron');
@@ -5,7 +6,10 @@ const { format }   = require('date-fns');
 const fs           = require('fs');
 const path         = require('path');
 const readline     = require('readline');
-
+const {
+  isCompletedToday,
+  markCompleted
+} = require('./src/state/dailyState');
 const CONFIG = {
   repo:        process.env.GITHUB_REPO   || '',
   sessionFile: process.env.SESSION_FILE  || './sessions/github.json',
@@ -209,6 +213,7 @@ async function commitToGitHub() {
     const finalUrl = page.url();
     console.log(`\n✅ Success! ${today} ${time}`);
     console.log(`   ${finalUrl}`);
+    markCompleted();
     return true;
 
   } catch (err) {
@@ -220,25 +225,40 @@ async function commitToGitHub() {
 }
 
 // ── Scheduler ─────────────────────────────────────────────────
+async function executeIfNeeded() {
+
+  if (isCompletedToday()) {
+    console.log('✓ Already completed today');
+    return;
+  }
+
+  console.log('⏳ No completion recorded today');
+  console.log('🚀 Starting GitHub streak task');
+
+  const success = await commitToGitHub();
+
+  if (success) {
+    console.log('✓ Daily task completed');
+  } else {
+    console.log('✗ Daily task failed');
+  }
+}
 
 function startScheduler() {
   if (!CONFIG.repo) { console.error('❌ GITHUB_REPO not set. Run: npm run auth'); process.exit(1); }
   if (!sessionExists()) { console.error('❌ No session. Run: npm run auth'); process.exit(1); }
 
-  const nextTime = new Date();
-  nextTime.setHours(21, 0, 0, 0);
-  if (nextTime < new Date()) nextTime.setDate(nextTime.getDate() + 1);
-
   console.log('\n⚡ GitHub Streak — Scheduler Active');
   console.log('══════════════════════════════════════');
   console.log(`  Repo:     ${CONFIG.repo}`);
-  console.log(`  Schedule: ${CONFIG.schedule}`);
+  console.log('  Check Frequency: every hour');
   console.log(`  Mode:     ${CONFIG.headless ? 'headless (background)' : 'headed (visible)'}`);
   console.log('══════════════════════════════════════');
   console.log('  You can close this terminal — pm2 keeps it running.');
   console.log('  To stop: pm2 stop github-streak');
   console.log('  To check: npm run status\n');
-
+  
+  executeIfNeeded();
   cron.schedule(CONFIG.schedule, async () => {
     await commitToGitHub();
   });
@@ -254,3 +274,4 @@ async function main() {
 }
 
 main().catch(err => { console.error('Fatal:', err.message); process.exit(1); });
+

@@ -1,3 +1,6 @@
+data/completed.json
+*.swo
+*.swp
 node_modules/
 sessions/
 .env
